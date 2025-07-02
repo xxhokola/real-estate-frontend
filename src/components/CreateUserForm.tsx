@@ -22,7 +22,8 @@ const CreateUserForm = () => {
       const res = await axios.post('http://localhost:3000/users', form);
       setMessage(`User created: ${res.data.name}`);
     } catch (err: any) {
-      setMessage('Error creating user');
+      console.error('Create user error:', err.response?.data || err.message);
+      setMessage('Error creating user: ' + (err.response?.data?.error || err.message));
     }
   };
 

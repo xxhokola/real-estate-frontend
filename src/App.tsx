@@ -1,10 +1,13 @@
 import React from 'react';
-import ReactDOM from 'react-dom/client';
-import App from './App';
-import './index.css';
+import CreateUserForm from './components/CreateUserForm';
 
-ReactDOM.createRoot(document.getElementById('root')!).render(
-  <React.StrictMode>
-    <App />
-  </React.StrictMode>,
-);
+const App = () => {
+  return (
+    <div style={{ padding: '2rem', fontFamily: 'Arial' }}>
+      <h1>Real Estate App</h1>
+      <CreateUserForm />
+    </div>
+  );
+};
+
+export default App;
