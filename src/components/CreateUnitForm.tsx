@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import axios from 'axios';
+import axios from '../lib/axiosInstance';
 
 const CreateUnitForm = () => {
   const [form, setForm] = useState({
@@ -9,25 +9,31 @@ const CreateUnitForm = () => {
     bathrooms: 1,
     sqft: 500,
     rent_amount: 1000,
+    is_occupied: false
   });
 
   const [message, setMessage] = useState('');
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setForm((prev) => ({
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+  ) => {
+    const { name, value, type, checked } = e.target;
+    setForm(prev => ({
       ...prev,
-      [name]: name === 'bedrooms' || name === 'bathrooms' || name === 'sqft' || name === 'rent_amount'
-        ? Number(value)
-        : value,
+      [name]:
+        type === 'checkbox'
+          ? checked
+          : ['bedrooms', 'bathrooms', 'sqft', 'rent_amount'].includes(name)
+          ? Number(value)
+          : value,
     }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const res = await axios.post('http://localhost:3000/units', form);
-      setMessage(`✅ Unit created: ${res.data.unit_number}`);
+      await axios.post('/units', form);
+      setMessage('✅ Unit created successfully!');
     } catch (err: any) {
       console.error('Create unit error:', err.response?.data || err.message);
       setMessage('❌ Error: ' + (err.response?.data?.error || err.message));
@@ -35,15 +41,98 @@ const CreateUnitForm = () => {
   };
 
   return (
-    <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', maxWidth: 500 }}>
-      <h2>Create Unit</h2>
-      <input name="property_id" placeholder="Property ID" onChange={handleChange} required />
-      <input name="unit_number" placeholder="Unit Number" onChange={handleChange} required />
-      <input name="bedrooms" type="number" placeholder="Bedrooms" onChange={handleChange} value={form.bedrooms} />
-      <input name="bathrooms" type="number" placeholder="Bathrooms" onChange={handleChange} value={form.bathrooms} />
-      <input name="sqft" type="number" placeholder="Square Feet" onChange={handleChange} value={form.sqft} />
-      <input name="rent_amount" type="number" placeholder="Rent Amount" onChange={handleChange} value={form.rent_amount} />
+    <form
+      onSubmit={handleSubmit}
+      style={{
+        marginTop: '1rem',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '1rem',
+        maxWidth: 500,
+      }}
+    >
+      <h3>Create a New Unit</h3>
+
+      <label>
+        Property ID
+        <input
+          name="property_id"
+          placeholder="e.g. 1"
+          value={form.property_id}
+          onChange={handleChange}
+          required
+        />
+      </label>
+
+      <label>
+        Unit Number / Label
+        <input
+          name="unit_number"
+          placeholder="e.g. 2A or Apt 203"
+          value={form.unit_number}
+          onChange={handleChange}
+          required
+        />
+      </label>
+
+      <label>
+        Bedrooms
+        <input
+          name="bedrooms"
+          type="number"
+          min={0}
+          value={form.bedrooms}
+          onChange={handleChange}
+        />
+      </label>
+
+      <label>
+        Bathrooms
+        <input
+          name="bathrooms"
+          type="number"
+          min={0}
+          step="0.5"
+          value={form.bathrooms}
+          onChange={handleChange}
+        />
+      </label>
+
+      <label>
+        Square Feet
+        <input
+          name="sqft"
+          type="number"
+          min={0}
+          value={form.sqft}
+          onChange={handleChange}
+        />
+      </label>
+
+      <label>
+        Rent Amount (USD)
+        <input
+          name="rent_amount"
+          type="number"
+          min={0}
+          step="50"
+          value={form.rent_amount}
+          onChange={handleChange}
+        />
+      </label>
+
+      <label>
+        <input
+          type="checkbox"
+          name="is_occupied"
+          checked={form.is_occupied}
+          onChange={handleChange}
+        />
+        This unit is currently occupied
+      </label>
+
       <button type="submit">Create Unit</button>
+
       {message && <p>{message}</p>}
     </form>
   );
