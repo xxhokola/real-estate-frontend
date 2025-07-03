@@ -12,7 +12,9 @@ const CreateUserForm = () => {
 
   const [message, setMessage] = useState('');
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+  ) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
@@ -20,16 +22,15 @@ const CreateUserForm = () => {
     e.preventDefault();
     try {
       const res = await axios.post('http://localhost:3000/users', form);
-      setMessage(`User created: ${res.data.name}`);
+      setMessage(`✅ User created: ${res.data.name}`);
     } catch (err: any) {
       console.error('Create user error:', err.response?.data || err.message);
-      setMessage('Error creating user: ' + (err.response?.data?.error || err.message));
+      setMessage('❌ Error creating user: ' + (err.response?.data?.error || err.message));
     }
   };
 
   return (
     <form onSubmit={handleSubmit}>
-      <h2>Create User</h2>
       <input name="name" placeholder="Name" onChange={handleChange} required />
       <input name="email" placeholder="Email" onChange={handleChange} required />
       <input name="phone" placeholder="Phone" onChange={handleChange} />
@@ -39,8 +40,8 @@ const CreateUserForm = () => {
         <option value="landlord">Landlord</option>
         <option value="manager">Manager</option>
       </select>
-      <button type="submit">Create</button>
-      <p>{message}</p>
+      <button type="submit">Create User</button>
+      {message && <p>{message}</p>}
     </form>
   );
 };
