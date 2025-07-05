@@ -8,6 +8,8 @@ import RoleRedirect from '../pages/RoleRedirect';
 import TenantDashboardPage from '../pages/TenantDashboardPage';
 import LandlordDashboardPage from '../pages/LandlordDashboardPage';
 import PropertyDetailPage from '../pages/PropertyDetailPage';
+import EmailVerificationPage from '../pages/EmailVerificationPage';
+import LeaseApprovalPage from '../pages/LeaseApprovalPage';
 
 const AppRouter = () => {
   return (
@@ -22,6 +24,9 @@ const AppRouter = () => {
         <Route path="/tenant/payment" element={<TenantPaymentPage />} />
         <Route path="/my-properties" element={<MyPropertiesPage />} />
         <Route path="/properties/:propertyId" element={<PropertyDetailPage />} />
+        <Route path="/signup" element={<SignupPage />} />
+        <Route path="/verify-email" element={<EmailVerificationPage />} />
+        <Route path="/approve-lease" element={<LeaseApprovalPage />} />
       </Routes>
     </BrowserRouter>
   );

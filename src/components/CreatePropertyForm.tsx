@@ -1,24 +1,21 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 
-const CreatePropertyForm = () => {
+const CreatePropertyForm = ({ onSuccess }: { onSuccess?: () => void }) => {
   const [form, setForm] = useState({
     address: '',
     city: '',
     state: '',
     zip_code: '',
     property_type: 'apartment',
-    num_units: 1,
-    owner_id: '',
+    num_units: 1
   });
 
   const [message, setMessage] = useState('');
 
-  const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
-  ) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
-    setForm((prev) => ({
+    setForm(prev => ({
       ...prev,
       [name]: name === 'num_units' ? Number(value) : value,
     }));
@@ -26,17 +23,30 @@ const CreatePropertyForm = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    const token = localStorage.getItem('token');
+    if (!token) return setMessage('Missing auth token');
+
+    const payload = JSON.parse(atob(token.split('.')[1]));
+    const owner_id = payload.user_id;
+
     try {
-      const res = await axios.post('http://localhost:3000/properties', form);
-      setMessage(`✅ Property created: ${res.data.address}`);
+      await axios.post('http://localhost:3000/properties', { ...form, owner_id }, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      setMessage('✅ Property created!');
+      if (onSuccess) onSuccess();
     } catch (err: any) {
       console.error('Create property error:', err.response?.data || err.message);
-      setMessage('❌ Error creating property: ' + (err.response?.data?.error || err.message));
+      setMessage('❌ Error: ' + (err.response?.data?.error || err.message));
     }
   };
 
   return (
-    <form onSubmit={handleSubmit}>
+    <form onSubmit={handleSubmit} style={{ marginTop: '1rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
       <input name="address" placeholder="Address" onChange={handleChange} required />
       <input name="city" placeholder="City" onChange={handleChange} required />
       <input name="state" placeholder="State" onChange={handleChange} required />
@@ -47,14 +57,7 @@ const CreatePropertyForm = () => {
         <option value="house">House</option>
         <option value="commercial">Commercial</option>
       </select>
-      <input
-        name="num_units"
-        type="number"
-        placeholder="Number of Units"
-        onChange={handleChange}
-        value={form.num_units}
-      />
-      <input name="owner_id" placeholder="Owner ID" onChange={handleChange} required />
+      <input name="num_units" type="number" min={1} value={form.num_units} onChange={handleChange} />
       <button type="submit">Create Property</button>
       {message && <p>{message}</p>}
     </form>

@@ -10,11 +10,11 @@ const MyPropertiesPage = () => {
   useEffect(() => {
     axios
       .get('/my-properties')
-      .then(res => {
+      .then((res) => {
         setProperties(res.data);
         setLoading(false);
       })
-      .catch(err => {
+      .catch((err) => {
         console.error('Failed to fetch properties:', err);
         setLoading(false);
       });
@@ -29,13 +29,23 @@ const MyPropertiesPage = () => {
       ) : properties.length === 0 ? (
         <p>No properties found.</p>
       ) : (
-        <ul>
+        <ul style={{ listStyle: 'none', paddingLeft: 0 }}>
           {properties.map((property) => (
-            <li key={property.property_id} style={{ marginBottom: '1rem' }}>
+            <li
+              key={property.property_id}
+              style={{
+                marginBottom: '1.5rem',
+                border: '1px solid #ccc',
+                padding: '1rem',
+                borderRadius: '6px',
+              }}
+            >
               <Link to={`/properties/${property.property_id}`}>
                 <strong>{property.address}</strong>
-              </Link><br />
-              {property.city}, {property.state} {property.zip_code}<br />
+              </Link>
+              <br />
+              {property.city}, {property.state} {property.zip_code}
+              <br />
               Type: {property.property_type} | Units: {property.num_units}
             </li>
           ))}

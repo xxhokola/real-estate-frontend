@@ -4,6 +4,7 @@ import CreatePropertyForm from './components/CreatePropertyForm';
 import CreateUnitForm from './components/CreateUnitForm';
 import CreateLeaseForm from './components/CreateLeaseForm';
 import CreatePaymentForm from './components/CreatePaymentForm';
+import SubmitPaymentForm from './components/SubmitPaymentForm';
 
 const App = () => {
   return (
@@ -41,6 +42,13 @@ const App = () => {
       <section>
         <h2>Log Rent Payment</h2>
         <CreatePaymentForm />
+      </section>
+
+      <hr style={{ margin: '2rem 0' }} />
+
+      <section>
+        <h2>Submit Payment (Smart Form)</h2>
+        <SubmitPaymentForm />
       </section>
     </div>
   );
