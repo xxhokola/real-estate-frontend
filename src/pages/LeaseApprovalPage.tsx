@@ -1,33 +1,72 @@
-// src/pages/LeaseApprovalPage.tsx
 import React, { useEffect, useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 import axios from '../lib/axiosInstance';
 
 const LeaseApprovalPage = () => {
   const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
   const [lease, setLease] = useState<any>(null);
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [isAuth, setIsAuth] = useState<boolean | null>(null);
   const [tokenValid, setTokenValid] = useState(false);
+
   const token = searchParams.get('token');
 
   useEffect(() => {
-    if (!token) {
-      setError('❌ Invalid or missing lease approval token.');
-      return;
-    }
+    const checkAuthAndToken = async () => {
+      if (!token) {
+        setError('❌ Missing or invalid lease token.');
+        setIsAuth(false);
+        return;
+      }
 
-    axios
-      .get(`/lease-approval/details?token=${token}`)
-      .then((res) => {
-        setLease(res.data);
+      const redirectUrl = `/approve-lease?token=${encodeURIComponent(token)}`;
+
+      try {
+        const decoded = JSON.parse(atob(token.split('.')[1]));
+        const invitedEmail = decoded.tenantEmail?.toLowerCase().trim();
+        console.log('📩 Invited tenant email from token:', invitedEmail);
+
+        const authToken = localStorage.getItem('token');
+        if (!authToken) {
+          console.warn('🔐 No login token. Redirecting...');
+          navigate(`/login?redirect=${encodeURIComponent(redirectUrl)}`, { replace: true });
+          return;
+        }
+
+        const meRes = await axios.get('/auth/me');
+        const loggedInEmail = meRes.data?.email?.toLowerCase().trim();
+        console.log('👤 Logged in as:', loggedInEmail, invitedEmail);
+
+        if (!invitedEmail || !loggedInEmail || invitedEmail !== loggedInEmail) {
+          setError('❌ You are not authorized to approve this lease.');
+          setIsAuth(false);
+          return;
+        }
+
+        setIsAuth(true);
+
+        const leaseRes = await axios.get(`/lease-approval/details?token=${token}`);
+        setLease(leaseRes.data);
         setTokenValid(true);
-      })
-      .catch((err) => {
-        setError('❌ Failed to load lease: ' + (err.response?.data?.error || err.message));
-      });
-  }, [token]);
+      } catch (err: any) {
+        console.error('❌ Auth or lease fetch failed:', err);
+
+        if (err.response?.status === 401) {
+          console.warn('🔁 Invalid token. Clearing and redirecting...');
+          localStorage.removeItem('token');
+          navigate(`/login?redirect=${encodeURIComponent(redirectUrl)}`, { replace: true });
+        } else {
+          setError('❌ ' + (err.response?.data?.error || err.message));
+          setIsAuth(false);
+        }
+      }
+    };
+
+    checkAuthAndToken();
+  }, [token, navigate]);
 
   const handleApprove = async () => {
     setSubmitting(true);
@@ -41,14 +80,28 @@ const LeaseApprovalPage = () => {
     }
   };
 
-  const handleDecline = () => {
-    alert('⚠️ Lease declined (logic to be implemented).');
+  const handleDecline = async () => {
+    setSubmitting(true);
+    try {
+      const res = await axios.post('/lease-approval/decline', { token });
+      setMessage(res.data.message || '🚫 Lease declined.');
+    } catch (err: any) {
+      setMessage('❌ Decline failed: ' + (err.response?.data?.error || err.message));
+    } finally {
+      setSubmitting(false);
+    }
   };
+
+  if (isAuth === null) {
+    return <div style={{ padding: '2rem' }}>🔄 Checking login status...</div>;
+  }
 
   return (
     <div style={{ padding: '2rem' }}>
       <h2>Lease Approval</h2>
-      {error && <p>{error}</p>}
+
+      {error && <p style={{ color: 'red' }}>{error}</p>}
+
       {lease && (
         <div style={{ marginBottom: '1.5rem' }}>
           <p><strong>Property:</strong> {lease.property_address}</p>
@@ -72,30 +125,6 @@ const LeaseApprovalPage = () => {
       {message && <p style={{ marginTop: '1rem' }}>{message}</p>}
     </div>
   );
-};
-
-const downloadSignedLease = async (leaseId: number) => {
-  try {
-    const token = localStorage.getItem('token');
-    const res = await fetch(`http://localhost:3000/leases/${leaseId}/signed-pdf`, {
-      headers: { Authorization: `Bearer ${token}` }
-    });
-
-    if (!res.ok) {
-      throw new Error('Download failed');
-    }
-
-    const blob = await res.blob();
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `lease_${leaseId}.pdf`;
-    a.click();
-    window.URL.revokeObjectURL(url);
-  } catch (err) {
-    alert('❌ Could not download signed lease.');
-    console.error(err);
-  }
 };
 
 export default LeaseApprovalPage;

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 
-const CreatePropertyForm = ({ onSuccess }: { onSuccess?: () => void }) => {
+const CreatePropertyForm = ({ onSuccess }: { onSuccess?: (propertyId: number) => void }) => {
   const [form, setForm] = useState({
     address: '',
     city: '',
@@ -31,14 +31,15 @@ const CreatePropertyForm = ({ onSuccess }: { onSuccess?: () => void }) => {
     const owner_id = payload.user_id;
 
     try {
-      await axios.post('http://localhost:3000/properties', { ...form, owner_id }, {
+      const res = await axios.post('http://localhost:3000/properties', { ...form, owner_id }, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
       });
 
+      const createdProperty = res.data;
       setMessage('✅ Property created!');
-      if (onSuccess) onSuccess();
+      if (onSuccess) onSuccess(createdProperty.property_id);
     } catch (err: any) {
       console.error('Create property error:', err.response?.data || err.message);
       setMessage('❌ Error: ' + (err.response?.data?.error || err.message));

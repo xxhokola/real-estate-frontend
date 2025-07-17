@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import axios from '../lib/axiosInstance';
 import CreatePropertyForm from '../components/CreatePropertyForm';
 
 const MyPropertiesPage = () => {
   const [properties, setProperties] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
 
   useEffect(() => {
     axios
@@ -19,6 +20,10 @@ const MyPropertiesPage = () => {
         setLoading(false);
       });
   }, []);
+
+  const handleCreateSuccess = (propertyId: number) => {
+    navigate(`/properties/${propertyId}`);
+  };
 
   return (
     <div style={{ padding: '2rem' }}>
@@ -54,7 +59,7 @@ const MyPropertiesPage = () => {
 
       <hr />
       <h3>Create a New Property</h3>
-      <CreatePropertyForm onSuccess={() => window.location.reload()} />
+      <CreatePropertyForm onSuccess={handleCreateSuccess} />
     </div>
   );
 };

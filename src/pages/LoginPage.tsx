@@ -1,12 +1,15 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import axios from '../lib/axiosInstance';
 
 const LoginPage = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const [form, setForm] = useState({ email: '', password: '' });
   const [message, setMessage] = useState('');
   const [showResend, setShowResend] = useState(false);
+
+  const redirect = new URLSearchParams(location.search).get('redirect') || '/dashboard';
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -15,11 +18,14 @@ const LoginPage = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setShowResend(false);
+
     try {
       const res = await axios.post('/auth/login', form);
       const token = res.data.token;
       localStorage.setItem('token', token);
-      navigate('/dashboard');
+
+      // ✅ Redirect to intended page or dashboard
+      navigate(redirect, { replace: true });
     } catch (err: any) {
       if (err.response?.status === 403) {
         setMessage('⚠️ ' + err.response.data.error);

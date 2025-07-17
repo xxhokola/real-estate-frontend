@@ -1,7 +1,14 @@
+// src/components/AssignTenantForm.tsx
 import React, { useState } from 'react';
 import axios from '../lib/axiosInstance';
 
-const AssignTenantForm = ({ leaseId, onAssigned }: { leaseId: number; onAssigned?: () => void }) => {
+const AssignTenantForm = ({
+  leaseId,
+  onAssigned
+}: {
+  leaseId: number;
+  onAssigned?: () => void;
+}) => {
   const [email, setEmail] = useState('');
   const [isPrimary, setIsPrimary] = useState(false);
   const [message, setMessage] = useState('');
@@ -16,29 +23,23 @@ const AssignTenantForm = ({ leaseId, onAssigned }: { leaseId: number; onAssigned
 
     try {
       const token = localStorage.getItem('token');
-      console.log('📤 Assigning:', { leaseId, email });
+      const res = await axios.post(
+        '/lease-tenants',
+        {
+          lease_id: leaseId,
+          tenant_email: email,
+          is_primary: isPrimary
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        }
+      );
 
-      // Assign tenant
-      const res1 = await axios.post('/lease-tenants', {
-        lease_id: leaseId,
-        tenant_email: email,
-        is_primary: isPrimary
-      }, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      console.log('✅ Assigned tenant:', res1.data);
-
-      // Send lease invite email
-      const res2 = await axios.post('/lease-invites/send', {
-        lease_id: leaseId,
-        tenant_email: email
-      }, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      console.log('✅ Sent invite email:', res2.data);
-
-      setMessage('✅ Tenant assigned and invite sent');
+      setMessage(res.data.message || '✅ Tenant assigned and invite sent');
       setEmail('');
+      setIsPrimary(false);
       if (onAssigned) onAssigned();
     } catch (err: any) {
       console.error('❌ Error:', err.response?.data || err.message);
@@ -47,7 +48,10 @@ const AssignTenantForm = ({ leaseId, onAssigned }: { leaseId: number; onAssigned
   };
 
   return (
-    <form onSubmit={handleSubmit} style={{ marginTop: '1rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+    <form
+      onSubmit={handleSubmit}
+      style={{ marginTop: '1rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}
+    >
       <label>
         Tenant Email
         <input
