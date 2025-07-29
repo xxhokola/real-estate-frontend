@@ -1,3 +1,4 @@
+// src/pages/LoginPage.tsx
 import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import axios from '../lib/axiosInstance';
@@ -9,7 +10,10 @@ const LoginPage = () => {
   const [message, setMessage] = useState('');
   const [showResend, setShowResend] = useState(false);
 
-  const redirect = new URLSearchParams(location.search).get('redirect') || '/dashboard';
+  const params = new URLSearchParams(location.search);
+  const inviteToken = params.get('invite');
+  const leaseToken = params.get('lease');
+  const redirect = params.get('redirect') || '/dashboard';
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -24,8 +28,12 @@ const LoginPage = () => {
       const token = res.data.token;
       localStorage.setItem('token', token);
 
-      // ✅ Redirect to intended page or dashboard
-      navigate(redirect, { replace: true });
+      // 📦 Redirect after login
+      if (leaseToken) {
+        navigate(`/approve-lease?token=${leaseToken}`, { replace: true });
+      } else {
+        navigate(redirect, { replace: true });
+      }
     } catch (err: any) {
       if (err.response?.status === 403) {
         setMessage('⚠️ ' + err.response.data.error);
@@ -70,7 +78,7 @@ const LoginPage = () => {
 
       <p style={{ fontSize: '0.9rem', marginTop: '1rem' }}>
         Don’t have an account?{' '}
-        <a href="/signup">
+        <a href={`/signup${inviteToken ? `?invite=${inviteToken}&lease=${leaseToken}` : ''}`}>
           Create one here
         </a>
       </p>

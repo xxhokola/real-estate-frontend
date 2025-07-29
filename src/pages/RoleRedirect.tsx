@@ -1,22 +1,30 @@
 import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import axios from '@/lib/axiosInstance';
 
 const RoleRedirect = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    if (!token) return navigate('/login');
+    const redirectUser = async () => {
+      try {
+        const res = await axios.get('/auth/me'); // safer than decoding token
+        const role = res.data?.role;
 
-    try {
-      const payload = JSON.parse(atob(token.split('.')[1]));
-      if (payload.role === 'tenant') navigate('/tenant/dashboard');
-      else if (['landlord', 'manager'].includes(payload.role)) navigate('/landlord/dashboard');
-      else navigate('/login');
-    } catch (err) {
-      console.error('Invalid token:', err);
-      navigate('/login');
-    }
+        if (role === 'tenant') {
+          navigate('/tenant/dashboard');
+        } else if (['landlord', 'manager'].includes(role)) {
+          navigate('/landlord/dashboard');
+        } else {
+          navigate('/login');
+        }
+      } catch (err) {
+        console.error('❌ Redirect failed:', err);
+        navigate('/login');
+      }
+    };
+
+    redirectUser();
   }, [navigate]);
 
   return <p style={{ padding: '2rem' }}>Loading dashboard...</p>;

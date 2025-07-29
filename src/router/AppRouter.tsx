@@ -12,6 +12,7 @@ import LandlordDashboardPage from '../pages/LandlordDashboardPage';
 import PropertyDetailPage from '../pages/PropertyDetailPage';
 import EmailVerificationPage from '../pages/EmailVerificationPage';
 import LeaseApprovalPage from '../pages/LeaseApprovalPage';
+import CreateLeaseTemplatePage from '../pages/CreateLeaseTemplatePage';
 
 const AppRouter = () => {
   return (
@@ -22,6 +23,7 @@ const AppRouter = () => {
 
         {/* Auth routes */}
         <Route path="/login" element={<LoginPage />} />
+        {/* Handles both normal and invite-based signup (/signup?invite=...) */}
         <Route path="/signup" element={<SignupPage />} />
         <Route path="/verify-email" element={<EmailVerificationPage />} />
 
@@ -34,6 +36,7 @@ const AppRouter = () => {
         <Route path="/tenant/payment" element={<TenantPaymentPage />} />
         <Route path="/my-properties" element={<MyPropertiesPage />} />
         <Route path="/properties/:propertyId" element={<PropertyDetailPage />} />
+        <Route path="/lease-templates/create" element={<CreateLeaseTemplatePage />} />
 
         {/* Public lease approval flow */}
         <Route path="/approve-lease" element={<LeaseApprovalPage />} />

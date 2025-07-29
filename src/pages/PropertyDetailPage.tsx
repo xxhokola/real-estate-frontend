@@ -36,8 +36,12 @@ const PropertyDetailPage = () => {
   return (
     <div style={{ padding: '2rem' }}>
       <h2>🏢 {property.address}</h2>
-      <p>{property.city}, {property.state} {property.zip_code}</p>
-      <p>Type: {property.property_type} | Total Units: {property.num_units}</p>
+      <p>
+        {property.city}, {property.state} {property.zip_code}
+      </p>
+      <p>
+        Type: {property.property_type} | Total Units: {property.num_units}
+      </p>
 
       <hr />
       <h3>Units</h3>
@@ -54,14 +58,17 @@ const PropertyDetailPage = () => {
                 padding: '1rem',
                 borderRadius: '6px',
                 backgroundColor: '#1a1a1a',
-                color: '#f0f0f0'
+                color: '#f0f0f0',
               }}
             >
-              <strong>Unit {unit.unit_number}</strong><br />
+              <strong>Unit {unit.unit_number}</strong>
+              <br />
               {unit.bedrooms} {unit.bedrooms === 1 ? 'bedroom' : 'bedrooms'} ·{' '}
               {unit.bathrooms} {unit.bathrooms === 1 ? 'bathroom' : 'bathrooms'} ·{' '}
-              {unit.sqft} sqft<br />
-              Rent: ${unit.rent_amount} / month<br />
+              {unit.sqft} sqft
+              <br />
+              Rent: ${unit.rent_amount} / month
+              <br />
               Status: {unit.is_occupied ? 'Occupied' : 'Vacant'}
               <br />
               <button
@@ -78,6 +85,7 @@ const PropertyDetailPage = () => {
               {selectedUnit === unit.unit_id && (
                 <CreateLeaseForm
                   unitId={unit.unit_id}
+                  propertyId={property.property_id}
                   onSuccess={() => {
                     setSelectedUnit(null);
                     loadData();
@@ -98,17 +106,31 @@ const PropertyDetailPage = () => {
                       borderRadius: '6px',
                     }}
                   >
-                    <strong>Lease #{lease.lease_id}</strong><br />
-                    Start: {lease.start_date} → End: {lease.end_date}<br />
-                    Rent: ${lease.rent_amount} due on day {lease.due_day} of each {lease.payment_frequency}<br />
-                    Deposit: ${lease.security_deposit}<br />
-                    Late fee: ${lease.late_fee} + {lease.late_fee_percent}%<br />
-
-                    <strong>Tenants:</strong><br />
+                    <strong>Lease #{lease.lease_id}</strong>
+                    <br />
+                    Start: {lease.start_date} → End: {lease.end_date}
+                    <br />
+                    Rent: ${lease.rent_amount} due on day {lease.due_day} of each{' '}
+                    {lease.payment_frequency}
+                    <br />
+                    Deposit: ${lease.security_deposit}
+                    <br />
+                    Late fee: ${lease.late_fee} + {lease.late_fee_percent}%
+                    <br />
+                    <button
+                      style={{ marginTop: '0.5rem' }}
+                      onClick={() => downloadSignedLease(lease.lease_id)}
+                    >
+                      📄 Download Signed Lease
+                    </button>
+                    <br />
+                    <strong>Tenants:</strong>
+                    <br />
                     {lease.tenants?.length > 0 ? (
                       lease.tenants.map((t: any) => (
                         <div key={t.user_id} style={{ color: '#ccc' }}>
-                          {t.name} ({t.email}) {t.is_primary ? '[Primary]' : ''}
+                          {t.name} ({t.email}){' '}
+                          {t.is_primary ? '[Primary]' : ''}
                         </div>
                       ))
                     ) : (
@@ -138,9 +160,12 @@ const PropertyDetailPage = () => {
 const downloadSignedLease = async (leaseId: number) => {
   try {
     const token = localStorage.getItem('token');
-    const res = await fetch(`http://localhost:3000/leases/${leaseId}/signed-pdf`, {
-      headers: { Authorization: `Bearer ${token}` }
-    });
+    const res = await fetch(
+      `http://localhost:3000/leases/${leaseId}/signed-pdf`,
+      {
+        headers: { Authorization: `Bearer ${token}` },
+      }
+    );
 
     if (!res.ok) {
       throw new Error('Download failed');
@@ -158,4 +183,5 @@ const downloadSignedLease = async (leaseId: number) => {
     console.error(err);
   }
 };
+
 export default PropertyDetailPage;
